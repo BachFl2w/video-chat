@@ -1,8 +1,17 @@
 const socket = io("/");
+
 const videoGrid = document.getElementById("video-grid");
 const myVideo = document.createElement("video");
 const showChat = document.querySelector("#showChat");
 const backBtn = document.querySelector(".header__back");
+const inviteButton = document.querySelector("#inviteButton");
+const muteButton = document.querySelector("#muteButton");
+const stopVideo = document.querySelector("#stopVideo");
+
+let text = document.querySelector("#chat_message");
+let send = document.getElementById("send");
+let messages = document.querySelector(".messages");
+
 myVideo.muted = true;
 
 backBtn.addEventListener("click", () => {
@@ -19,15 +28,19 @@ showChat.addEventListener("click", () => {
     document.querySelector(".header__back").style.display = "block";
 });
 
-const user = prompt("Enter your name");
+let user = '';
+
+while (!user) {
+    user = prompt("Enter your name");
+};
 
 var peer = new Peer(undefined, {
     path: "/peerjs",
     host: "/",
-    port: 3030,
 });
 
 let myVideoStream;
+
 navigator.mediaDevices
     .getUserMedia({
         audio: true,
@@ -70,10 +83,6 @@ const addVideoStream = (video, stream) => {
     });
 };
 
-let text = document.querySelector("#chat_message");
-let send = document.getElementById("send");
-let messages = document.querySelector(".messages");
-
 send.addEventListener("click", (e) => {
     if (text.value.length !== 0) {
         socket.emit("message", text.value);
@@ -88,9 +97,6 @@ text.addEventListener("keydown", (e) => {
     }
 });
 
-const inviteButton = document.querySelector("#inviteButton");
-const muteButton = document.querySelector("#muteButton");
-const stopVideo = document.querySelector("#stopVideo");
 muteButton.addEventListener("click", () => {
     const enabled = myVideoStream.getAudioTracks()[0].enabled;
     if (enabled) {
@@ -122,10 +128,16 @@ stopVideo.addEventListener("click", () => {
 });
 
 inviteButton.addEventListener("click", (e) => {
-    prompt(
-        "Copy this link and send it to people you want to meet with",
-        window.location.href
-    );
+    let dummy = document.createElement('input');
+    let text = window.location.href;
+
+    document.body.appendChild(dummy);
+    dummy.value = text;
+    dummy.select();
+    document.execCommand('copy');
+    document.body.removeChild(dummy);
+
+    alert("Copied !");
 });
 
 socket.on("createMessage", (message, userName) => {
@@ -137,3 +149,7 @@ socket.on("createMessage", (message, userName) => {
         <span>${message}</span>
     </div>`;
 });
+
+socket.on("notify", (userName) => {
+    messages.innerHTML += `<div class="notify">${userName} joined !</div>`;
+})

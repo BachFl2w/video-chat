@@ -28,10 +28,11 @@ io.on("connection", (socket) => {
     socket.on("join-room", (roomId, userId, userName) => {
         socket.join(roomId);
         socket.to(roomId).broadcast.emit("user-connected", userId);
+        socket.to(roomId).emit("notify", userName);
         socket.on("message", (message) => {
             io.to(roomId).emit("createMessage", message, userName);
         });
     });
 });
 
-server.listen(3030);
+server.listen(process.env.PORT || 3000, () => console.log("Server is running..."));
